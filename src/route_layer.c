@@ -73,6 +73,8 @@ void resize_route_layer(route_layer *l, network *net)
 
 void forward_route_layer(const route_layer l, network net)
 {
+    fprintf(stderr, "l.n:%d\n", l.n);
+    fprintf(stderr, "l.batch:%d\n", l.batch);
     int i, j;
     int offset = 0;
     for(i = 0; i < l.n; ++i){

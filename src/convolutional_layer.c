@@ -469,14 +469,36 @@ void forward_convolutional_layer(convolutional_layer l, network net)
         }
     }
 
+    // output
+    fprintf(stderr, "gemm\n");
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, l.output[i]);
+    }
+    // batchnorm
     if(l.batch_normalize){
         forward_batchnorm_layer(l, net);
     } else {
         add_bias(l.output, l.biases, l.batch, l.n, l.out_h*l.out_w);
     }
+    fprintf(stderr, "batchnorm\n");
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, l.output[i]);
+    }
 
+    // activation
     activate_array(l.output, l.outputs*l.batch, l.activation);
     if(l.binary || l.xnor) swap_binary(&l);
+    fprintf(stderr, "relu\n");
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, l.output[i]);
+    }
+    printf("relu out_w:%d out_h:%d out_c: %d [%d]\n", 
+          l.out_w, l.out_h, l.out_c,
+          l.out_w*l.out_h*l.out_c);
+    fprintf(stderr, "conv result:\n");
 }
 
 void backward_convolutional_layer(convolutional_layer l, network net)

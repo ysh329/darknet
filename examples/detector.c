@@ -596,6 +596,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         layer l = net->layers[net->n-1];
 
         box *boxes = calloc(l.w*l.h*l.n, sizeof(box));
+        
         float **probs = calloc(l.w*l.h*l.n, sizeof(float *));
         for(j = 0; j < l.w*l.h*l.n; ++j) probs[j] = calloc(l.classes + 1, sizeof(float *));
         float **masks = 0;
@@ -605,6 +606,22 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         }
 
         float *X = sized.data;
+        fprintf(stderr, "=== X ===\n");
+        printf("=== X ===\n");
+        fprintf(stderr, "sized.h:%d, sized.w:%d, sized.c:%d\n",
+                         sized.h, sized.w, sized.c);
+        printf("sized.h:%d, sized.w:%d, sized.c:%d\n",
+                sized.h, sized.w, sized.c);
+      
+        // input checked
+        /*
+        for (int ii = 0; ii < sized.h*sized.w*sized.c; ii++) 
+        {
+            //fprintf(stderr, "%d\t%f\n", ii, X[ii]);
+            printf("%d\t%f\n", ii, X[ii]);
+        }
+        */
+
         time=what_time_is_it_now();
         network_predict(net, X);
         printf("%s: Predicted in %f seconds.\n", input, what_time_is_it_now()-time);
@@ -612,6 +629,31 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         if (nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         draw_detections(im, l.w*l.h*l.n, thresh, boxes, probs, masks, names, alphabet, l.classes);
+
+        // check boxes
+        /*
+	fprintf(stderr, "bidx\tx\ty\tw\th\n");
+	for (int bidx = 0; bidx < l.w*l.h*l.n; bidx++) {
+		box bbox = boxes[bidx];
+		//fprintf(stderr, "%f,%f,%f,%f\n", bbox.x, bbox.y, bbox.w, bbox.h);
+		printf("%f,%f,%f,%f,\n", bbox.x, bbox.y, bbox.w, bbox.h);
+	}
+	printf("\n");
+        */
+
+	// check probs
+        /*
+	for (int ii = 0; ii < 9*9*5; ii++)
+	{
+		for (int jj = 0; jj < 11; jj++)
+		{
+			printf("%f,", probs[ii][jj]);
+			fprintf(stderr, "%f,", probs[ii][jj]);
+		}
+		printf("\n");
+        	fprintf(stderr, "\n");
+	}
+        */
         if(outfile){
             save_image(im, outfile);
         }

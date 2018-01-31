@@ -90,6 +90,9 @@ void resize_reorg_layer(layer *l, int w, int h)
 
 void forward_reorg_layer(const layer l, network net)
 {
+    fprintf(stderr, "flatten:%d\n", l.flatten);
+    fprintf(stderr, "reverse:%d\n", l.reverse);
+    fprintf(stderr, "extra:%d\n", l.extra);
     int i;
     if(l.flatten){
         memcpy(l.output, net.input, l.outputs*l.batch*sizeof(float));
@@ -105,12 +108,25 @@ void forward_reorg_layer(const layer l, network net)
     } else if (l.reverse){
         reorg_cpu(net.input, l.w, l.h, l.c, l.batch, l.stride, 1, l.output);
     } else {
+        fprintf(stderr, "=== else ====\n");
+        fprintf(stderr, "w:%d\n", l.w);
+	fprintf(stderr, "h:%d\n", l.h);
+	fprintf(stderr, "c:%d\n", l.c);
+	fprintf(stderr, "stride:%d\n", l.stride);
+	fprintf(stderr, "batch:%d\n\n", l.batch);
+	fprintf(stderr, "l.out_c:%d\n", l.out_c);
+	fprintf(stderr, "l.out_w:%d\n", l.out_w);
+
         reorg_cpu(net.input, l.w, l.h, l.c, l.batch, l.stride, 0, l.output);
     }
+    printf("== reorg ==\n");
+    //for (int i = 0; i < l.out_c*l.out_w*l.out_h; i++)
+        //printf("%d\t%f\n", i, l.output[i]);
 }
 
 void backward_reorg_layer(const layer l, network net)
 {
+    fprintf(stderr, "== backward_reorg_layer ==\n");
     int i;
     if(l.flatten){
         memcpy(net.delta, l.delta, l.outputs*l.batch*sizeof(float));

@@ -189,16 +189,47 @@ void forward_network(network *netp)
         return;
     }
 #endif
+
     network net = *netp;
+    fprintf(stderr, "===== enter forward_network =====\n");
+    fprintf(stderr, "%d\n", net.n);
     int i;
     for(i = 0; i < net.n; ++i){
         net.index = i;
         layer l = net.layers[i];
+
+        fprintf(stderr, "\n== net.index:%d ==\n", net.index);
+        fprintf(stderr, "%d\tw:%d\th:%d\tc:%d\n", 
+                        l.w*l.h*l.c,
+                        l.w, l.h, l.c);
+        fprintf(stderr, "%d\tout_w:%d\tout_h:%d\tout_c:%d\n",
+                        l.out_w*l.out_h*l.out_c,
+                        l.out_w, l.out_h, l.out_c);
+        fprintf(stderr, "l.delta:%d\n", l.delta);
+        fprintf(stderr, "l.truth:%d\n", l.truth);
+
+
         if(l.delta){
             fill_cpu(l.outputs * l.batch, 0, l.delta, 1);
         }
         l.forward(l, net);
         net.input = l.output;
+
+
+        int print_idx = -1;
+        printf("== print_idx: %d ==\n", print_idx);
+        int print_num = 10;
+        if (net.index == print_idx)
+            print_num = l.outputs;
+        // check output
+        for (int ii = 0; ii < print_num; ii++)
+        {
+            if (net.index == print_idx)
+                printf("%d\t%f\n", ii, l.output[ii]);
+            else
+                fprintf(stderr, "%d\t%f\n", ii, l.output[ii]);
+        }
+
         if(l.truth) {
             net.truth = l.output;
         }

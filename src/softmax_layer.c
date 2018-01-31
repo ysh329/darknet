@@ -35,6 +35,8 @@ softmax_layer make_softmax_layer(int batch, int inputs, int groups)
 
 void forward_softmax_layer(const softmax_layer l, network net)
 {
+    fprintf(stderr, "=== forward_softmax_layer ===\n");
+    printf("=== forward_softmax_layer ===\n");
     if(l.softmax_tree){
         int i;
         int count = 0;

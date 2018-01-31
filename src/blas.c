@@ -11,18 +11,41 @@ void reorg_cpu(float *x, int w, int h, int c, int batch, int stride, int forward
     int b,i,j,k;
     int out_c = c/(stride*stride);
 
+    int aa = 0;
+    fprintf(stderr, "=== reorg_cpu ===\n");
+    fprintf(stderr, "w:%d\n", w);
+    fprintf(stderr, "h:%d\n", h);
+    fprintf(stderr, "c:%d\n", c);
+
+    printf("=== reorg_cpu ===\n");
+    printf("w:%d\n", w);
+    printf("h:%d\n", h);
+    printf("c:%d\n", c);
+
+    fprintf(stderr, "tmp:0/0:%d\n", 0/0);
+    fprintf(stderr, "tmp:1/4:%d\n", 1/4);
+    fprintf(stderr, "out_c:%d\n", out_c);
+    fprintf(stderr, "forward:%d\n", forward);
+
+    //printf("in_index\tout_index\n");
     for(b = 0; b < batch; ++b){
         for(k = 0; k < c; ++k){
             for(j = 0; j < h; ++j){
                 for(i = 0; i < w; ++i){
+                    // in_index = i + 
                     int in_index  = i + w*(j + h*(k + c*b));
                     int c2 = k % out_c;
                     int offset = k / out_c;
                     int w2 = i*stride + offset % stride;
                     int h2 = j*stride + offset / stride;
                     int out_index = w2 + w*stride*(h2 + h*stride*(c2 + out_c*b));
+                    //printf("%d\t%d\n", in_index, out_index);
                     if(forward) out[out_index] = x[in_index];
-                    else out[in_index] = x[out_index];
+                    else
+                    {
+                        //fprintf(stderr, "else===="); 
+                        out[in_index] = x[out_index];
+		    }
                 }
             }
         }
@@ -280,11 +303,39 @@ void softmax(float *input, int n, float temp, int stride, float *output)
 
 void softmax_cpu(float *input, int n, int batch, int batch_offset, int groups, int group_offset, int stride, float temp, float *output)
 {
+    printf("=== sofmax_cpu ===\n");
+    printf("n:%d\n", n);
+    printf("batch:%d\n", batch);
+    printf("batch_offset:%d\n", batch_offset);
+    printf("groups:%d\n", groups);
+    printf("group_offset:%d\n", group_offset);
+    printf("stride:%d\n", stride);
+    printf("temp:%f\n", temp);
+
+    fprintf(stderr, "=== sofmax_cpu ===\n");
+    fprintf(stderr, "n:%d\n", n);
+    fprintf(stderr, "batch:%d\n", batch);
+    fprintf(stderr, "batch_offset:%d\n", batch_offset);
+    fprintf(stderr, "groups:%d\n", groups);
+    fprintf(stderr, "group_offset:%d\n", group_offset);
+    fprintf(stderr, "stride:%d\n", stride);
+    fprintf(stderr, "temp:%f\n", temp);
+
+    fprintf(stderr, "=== before softmax_cpu op ===\n");
+    fprintf(stderr, "input:\n");
+    for (int i = 0; i < 10; i++)
+        fprintf(stderr, "%d\t%f\n", i, input[i]);
+    
     int g, b;
     for(b = 0; b < batch; ++b){
         for(g = 0; g < groups; ++g){
             softmax(input + b*batch_offset + g*group_offset, n, temp, stride, output + b*batch_offset + g*group_offset);
         }
     }
+    fprintf(stderr, "=== after softmax_cpu op ===\n");
+    fprintf(stderr, "output:\n");
+    for (int i = 0; i < 10; i++)
+        fprintf(stderr, "%d\t%f\n", i, output[i]);
+
 }
 

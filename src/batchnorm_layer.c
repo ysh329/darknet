@@ -134,13 +134,22 @@ void resize_batchnorm_layer(layer *layer, int w, int h)
 
 void forward_batchnorm_layer(layer l, network net)
 {
-    if(l.type == BATCHNORM) copy_cpu(l.outputs*l.batch, net.input, 1, l.output, 1);
+    fprintf(stderr, "===== forward_batchnorm_layer =====\n");
+    fprintf(stderr, "net.train:%d\n", net.train);
+
+    if(l.type == BATCHNORM){
+        fprintf(stderr, "l.type == BATCHNORM\n");
+        copy_cpu(l.outputs*l.batch, net.input, 1, l.output, 1);
+    }
     copy_cpu(l.outputs*l.batch, l.output, 1, l.x, 1);
     if(net.train){
+        fprintf(stderr, "== enter net.train ==\n");
         mean_cpu(l.output, l.batch, l.out_c, l.out_h*l.out_w, l.mean);
         variance_cpu(l.output, l.mean, l.batch, l.out_c, l.out_h*l.out_w, l.variance);
 
+        // new_mean = old_mean * .99
         scal_cpu(l.out_c, .99, l.rolling_mean, 1);
+        // new_mean += .01 * l.mean
         axpy_cpu(l.out_c, .01, l.mean, 1, l.rolling_mean, 1);
         scal_cpu(l.out_c, .99, l.rolling_variance, 1);
         axpy_cpu(l.out_c, .01, l.variance, 1, l.rolling_variance, 1);
@@ -148,9 +157,13 @@ void forward_batchnorm_layer(layer l, network net)
         normalize_cpu(l.output, l.mean, l.variance, l.batch, l.out_c, l.out_h*l.out_w);   
         copy_cpu(l.outputs*l.batch, l.output, 1, l.x_norm, 1);
     } else {
+        fprintf(stderr, "== enter normalize_cpu ==\n");
+        // .000001f
         normalize_cpu(l.output, l.rolling_mean, l.rolling_variance, l.batch, l.out_c, l.out_h*l.out_w);
     }
+    // scale: output *= scale[i], scale: l.out_c
     scale_bias(l.output, l.scales, l.batch, l.out_c, l.out_h*l.out_w);
+    // bias: output += biases[i], biases: l.out_c
     add_bias(l.output, l.biases, l.batch, l.out_c, l.out_h*l.out_w);
 }
 

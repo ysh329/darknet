@@ -238,12 +238,14 @@ image **load_alphabet()
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, float **masks, char **names, image **alphabet, int classes)
 {
     int i,j;
-
+    fprintf(stderr, "== draw_detections ==\n");
+    fprintf(stderr, "thresh: %f\n", thresh);
     for(i = 0; i < num; ++i){
         char labelstr[4096] = {0};
         int class = -1;
         for(j = 0; j < classes; ++j){
             if (probs[i][j] > thresh){
+                fprintf(stderr, "probs[i][j]:%f\n", i, j, probs[i][j]);
                 if (class < 0) {
                     strcat(labelstr, names[j]);
                     class = j;
@@ -495,12 +497,27 @@ image copy_image(image p)
 
 void rgbgr_image(image im)
 {
+    /*
+    fprintf(stderr, "== before rgbgr_image ==\n");
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, im.data[i]);
+    }
+    */
     int i;
     for(i = 0; i < im.w*im.h; ++i){
         float swap = im.data[i];
         im.data[i] = im.data[i+im.w*im.h*2];
         im.data[i+im.w*im.h*2] = swap;
     }
+    // checked
+    /*
+    fprintf(stderr, "== after rgbgr_image ==\n");
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, im.data[i]);
+    }
+    */
 }
 
 #ifdef OPENCV
@@ -565,8 +582,12 @@ void ipl_into_image(IplImage* src, image im)
     int w = src->width;
     int c = src->nChannels;
     int step = src->widthStep;
-    int i, j, k;
 
+    //fprintf(stderr, "== ipl_into_image ==\n");
+    //fprintf(stderr, "h:%d\tw:%d\tc:%d\tstep:%d\n", h, w, c, step);
+
+    int i, j, k;
+    // convert HWC to CHW
     for(i = 0; i < h; ++i){
         for(k= 0; k < c; ++k){
             for(j = 0; j < w; ++j){
@@ -574,6 +595,13 @@ void ipl_into_image(IplImage* src, image im)
             }
         }
     }
+    // checked
+    /*
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, im.data[i]);
+    }
+    */
 }
 
 image ipl_to_image(IplImage* src)
@@ -607,6 +635,7 @@ image load_image_cv(char *filename, int channels)
         //exit(0);
     }
     image out = ipl_to_image(src);
+    //printf("== out ipl_to_image ==\n");
     cvReleaseImage(&src);
     rgbgr_image(out);
     return out;
@@ -930,6 +959,7 @@ image letterbox_image(image im, int w, int h)
 {
     int new_w = im.w;
     int new_h = im.h;
+    fprintf(stderr, "== enter letterbox_image==\n");
     if (((float)w/im.w) < ((float)h/im.h)) {
         new_w = w;
         new_h = (im.h * w)/im.w;
@@ -937,7 +967,24 @@ image letterbox_image(image im, int w, int h)
         new_h = h;
         new_w = (im.w * h)/im.h;
     }
-    image resized = resize_image(im, new_w, new_h);
+    fprintf(stderr, "new_w:%d\tnew_h:%d\n", new_w, new_h); //new_w:288 new_h:177
+    fprintf(stderr, "w:%d\nh:%d\n", w, h); // w=h=288
+
+    fprintf(stderr, "=== before resize ===\n");
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, im.data[i]);
+    }
+
+    image resized = resize_image(im, new_w, new_h);   
+
+    fprintf(stderr, "=== after resize ===\n");   
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "%d\t%f\n", i, resized.data[i]);
+    }
+
+
     image boxed = make_image(w, h, im.c);
     fill_image(boxed, .5);
     //int i;

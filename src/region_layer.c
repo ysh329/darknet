@@ -157,6 +157,20 @@ int entry_index(layer l, int batch, int location, int entry)
 
 void forward_region_layer(const layer l, network net)
 {
+
+    printf("=== enter forward_region_layer ===\n");
+
+
+    fprintf(stderr, "=== enter forward_region_layer ===\n");
+    fprintf(stderr, "l.softmax_tree:%d\n", l.softmax_tree);
+    fprintf(stderr, "l.softmax:%d\n", l.softmax);
+    fprintf(stderr, "l.classes:%d\n", l.classes);
+    fprintf(stderr, "l.background:%d\n", l.background);
+    fprintf(stderr, "l.batch:%d\n", l.batch);
+    fprintf(stderr, "l.n:%d\n", l.n);
+    fprintf(stderr, "l.inputs:%d\n", l.inputs);
+    fprintf(stderr, "l.index:%d\n", l.index);
+
     int i,j,b,t,n;
     memcpy(l.output, net.input, l.outputs*l.batch*sizeof(float));
 
@@ -369,6 +383,23 @@ void correct_region_boxes(box *boxes, int n, int w, int h, int netw, int neth, i
 
 void get_region_boxes(layer l, int w, int h, int netw, int neth, float thresh, float **probs, box *boxes, float **masks, int only_objectness, int *map, float tree_thresh, int relative)
 {
+    fprintf(stderr, "=== enter get_region_boxes ===\n");
+    
+    for (int i = 0; i < 10; i++)
+    {
+        fprintf(stderr, "l.biases[%d] %f,\n", i, l.biases[i]);
+    }
+    fprintf(stderr, "\n");
+    /*
+    fprintf(stderr, "=========== l.input ===========\n");
+    for (int i = 0; i < 75*9*9; i++) 
+    {   
+       //fprintf(stderr, "%d\t%f\n", i, l.output[i]);
+       //printf("%d\t%f,\n", i, l.inputs[i]);
+    }
+    printf("\n");
+    */
+
     int i,j,n,z;
     float *predictions = l.output;
     if (l.batch == 2) {
@@ -415,7 +446,7 @@ void get_region_boxes(layer l, int w, int h, int netw, int neth, float thresh, f
 
             int class_index = entry_index(l, 0, n*l.w*l.h + i, l.coords + !l.background);
             if(l.softmax_tree){
-
+                fprintf(stderr, "enter == softmax_tree");
                 hierarchy_predictions(predictions + class_index, l.classes, l.softmax_tree, 0, l.w*l.h);
                 if(map){
                     for(j = 0; j < 200; ++j){
@@ -454,6 +485,39 @@ void get_region_boxes(layer l, int w, int h, int netw, int neth, float thresh, f
         }
     }
     correct_region_boxes(boxes, l.w*l.h*l.n, w, h, netw, neth, relative);
+
+    fprintf(stderr, "w:%d h: %d netw:%d neth:%d\n", w, h, netw, neth);
+    fprintf(stderr, "thresh:%f\n", thresh);
+    fprintf(stderr, "only_objectness:%f\n", only_objectness);
+    fprintf(stderr, "only_objectness d:%d\n", only_objectness);
+    fprintf(stderr, "tree_thresh:%f\n", tree_thresh);
+    fprintf(stderr, "relative:%d\n", relative);
+    fprintf(stderr, "l.softmax_tree:%f\n", l.softmax_tree);
+    fprintf(stderr, "l.background f:%f\n", l.background);
+    fprintf(stderr, "l.background d:%d\n", l.background);
+    fprintf(stderr, "l.classes:%d\n", l.classes);
+    fprintf(stderr, "l.coords:%d\n", l.coords);
+    /*
+    fprintf(stderr, "bidx\tx\ty\tw\th\n");
+    for (int bidx = 0; bidx < l.w*l.h*l.n; bidx++) {
+        box bbox = boxes[bidx];
+        //fprintf(stderr, "%f,%f,%f,%f\n", bbox.x, bbox.y, bbox.w, bbox.h);
+        printf("%f,%f,%f,%f,\n", bbox.x, bbox.y, bbox.w, bbox.h);
+    }
+    printf("\n");
+    */
+
+
+    /*
+    for (int ii = 0; ii < 9*9*5; ii++)
+    {
+        for (int jj = 0; jj < 10; jj++)
+        {
+            fprintf(stderr, "%f\t", probs[ii][jj]);
+        }
+        fprintf(stderr, "\n");
+    }*/
+
 }
 
 #ifdef GPU

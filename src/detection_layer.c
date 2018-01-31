@@ -49,6 +49,18 @@ detection_layer make_detection_layer(int batch, int inputs, int n, int side, int
 
 void forward_detection_layer(const detection_layer l, network net)
 {
+    fprintf(stderr, "=== forward_detection_layer ===\n");
+    fprintf(stderr, "l.softmax d:%d\n", l.softmax);
+    fprintf(stderr, "l.softmax f:%f\n", l.softmax);
+    fprintf(stderr, "l.side:%d\n", l.side);
+    fprintf(stderr, "net.train:%d\n", net.train);
+
+    printf("=== forward_detection_layer ===\n");
+    printf("l.softmax d:%d\n", l.softmax);
+    printf("l.softmax f:%f\n", l.softmax);
+    printf("l.side:%d\n", l.side);
+    printf("net.train:%d\n", net.train);
+
     int locations = l.side*l.side;
     int i,j;
     memcpy(l.output, net.input, l.outputs*l.batch*sizeof(float));
