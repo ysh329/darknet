@@ -47,6 +47,7 @@ maxpool_layer make_maxpool_layer(int batch, int h, int w, int c, int size, int s
     l.output_gpu  = cuda_make_array(l.output, output_size);
     l.delta_gpu   = cuda_make_array(l.delta, output_size);
     #endif
+    //fprintf(stderr, "pad: %d stride: %d size: %d\n", padding, stride, size);
     fprintf(stderr, "max          %d x %d / %d  %4d x%4d x%4d   ->  %4d x%4d x%4d\n", size, size, stride, w, h, c, l.out_w, l.out_h, l.out_c);
     return l;
 }
@@ -78,6 +79,13 @@ void resize_maxpool_layer(maxpool_layer *l, int w, int h)
 
 void forward_maxpool_layer(const maxpool_layer l, network net)
 {
+    fprintf(stderr, "=== maxpool ====\n");
+    fprintf(stderr, "l.h:%d\n", l.h);
+    fprintf(stderr, "l.w:%d\n", l.w);
+    fprintf(stderr, "l.c:%d\n", l.c);
+    fprintf(stderr, ".out_h:%d\n", l.out_h);
+    fprintf(stderr, "l.out_w:%d\n", l.out_w);
+    fprintf(stderr, "l.out_c:%d\n", l.out_c);
     int b,i,j,k,m,n;
     int w_offset = -l.pad;
     int h_offset = -l.pad;

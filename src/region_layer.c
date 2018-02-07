@@ -41,28 +41,28 @@ layer make_region_layer(int batch, int w, int h, int n, int classes, int coords)
     l.forward = forward_region_layer;
     l.backward = backward_region_layer;
 #ifdef GPU
-    l.forward_gpu = forward_region_layer_gpu;
-    l.backward_gpu = backward_region_layer_gpu;
-    l.output_gpu = cuda_make_array(l.output, batch*l.outputs);
-    l.delta_gpu = cuda_make_array(l.delta, batch*l.outputs);
-#endif
+	    l.forward_gpu = forward_region_layer_gpu;
+	    l.backward_gpu = backward_region_layer_gpu;
+	    l.output_gpu = cuda_make_array(l.output, batch*l.outputs);
+	    l.delta_gpu = cuda_make_array(l.delta, batch*l.outputs);
+	#endif
 
-    fprintf(stderr, "detection\n");
-    srand(0);
+	    fprintf(stderr, "detection\n");
+	    srand(0);
 
-    return l;
-}
+	    return l;
+	}
 
-void resize_region_layer(layer *l, int w, int h)
-{
-    l->w = w;
-    l->h = h;
+	void resize_region_layer(layer *l, int w, int h)
+	{
+	    l->w = w;
+	    l->h = h;
 
-    l->outputs = h*w*l->n*(l->classes + l->coords + 1);
-    l->inputs = l->outputs;
+	    l->outputs = h*w*l->n*(l->classes + l->coords + 1);
+	    l->inputs = l->outputs;
 
-    l->output = realloc(l->output, l->batch*l->outputs*sizeof(float));
-    l->delta = realloc(l->delta, l->batch*l->outputs*sizeof(float));
+	    l->output = realloc(l->output, l->batch*l->outputs*sizeof(float));
+	    l->delta = realloc(l->delta, l->batch*l->outputs*sizeof(float));
 
 #ifdef GPU
     cuda_free(l->delta_gpu);
@@ -158,9 +158,6 @@ int entry_index(layer l, int batch, int location, int entry)
 void forward_region_layer(const layer l, network net)
 {
 
-    printf("=== enter forward_region_layer ===\n");
-
-
     fprintf(stderr, "=== enter forward_region_layer ===\n");
     fprintf(stderr, "l.softmax_tree:%d\n", l.softmax_tree);
     fprintf(stderr, "l.softmax:%d\n", l.softmax);
@@ -169,7 +166,12 @@ void forward_region_layer(const layer l, network net)
     fprintf(stderr, "l.batch:%d\n", l.batch);
     fprintf(stderr, "l.n:%d\n", l.n);
     fprintf(stderr, "l.inputs:%d\n", l.inputs);
+    fprintf(stderr, "l.h=%d l.w=%d l.c=%d [%d]\n", l.h, l.w, l.c, l.h*l.w*l.c);
+    fprintf(stderr, "l.out_h=%d l.out_w=%d l.out_c=%d [%d]\n", l.out_h, l.out_w, l.out_c, l.out_h*l.out_w * l.out_c);
+    fprintf(stderr, "l.inputs:%d\n", l.inputs);
+    fprintf(stderr, "l.outputs:%d\n", l.outputs);
     fprintf(stderr, "l.index:%d\n", l.index);
+    fprintf(stderr, "net.train:%d\n", net.train);
 
     int i,j,b,t,n;
     memcpy(l.output, net.input, l.outputs*l.batch*sizeof(float));
@@ -185,6 +187,7 @@ void forward_region_layer(const layer l, network net)
             if(!l.softmax && !l.softmax_tree) activate_array(l.output + index, l.classes*l.w*l.h, LOGISTIC);
         }
     }
+    // l.softmax_tree = 0
     if (l.softmax_tree){
         int i;
         int count = l.coords + 1;
@@ -193,6 +196,7 @@ void forward_region_layer(const layer l, network net)
             softmax_cpu(net.input + count, group_size, l.batch, l.inputs, l.n*l.w*l.h, 1, l.n*l.w*l.h, l.temperature, l.output + count);
             count += group_size;
         }
+    // l.softmax = 1
     } else if (l.softmax){
         int index = entry_index(l, 0, 0, l.coords + !l.background);
         softmax_cpu(net.input + index, l.classes + l.background, l.batch*l.n, l.inputs/l.n, l.w*l.h, 1, l.w*l.h, 1, l.output + index);
@@ -200,7 +204,14 @@ void forward_region_layer(const layer l, network net)
 #endif
 
     memset(l.delta, 0, l.outputs * l.batch * sizeof(float));
+
+    fprintf(stderr, "== exit forward_region_layer ==\n");
+    for (int i = 0; i < 10; i++)
+        fprintf(stderr, "%d\t%f\n", i, l.output[i]);
     if(!net.train) return;
+    /*****************************
+    * forward region_layer stop  *
+    *****************************/
     float avg_iou = 0;
     float recall = 0;
     float avg_cat = 0;
@@ -210,6 +221,7 @@ void forward_region_layer(const layer l, network net)
     int class_count = 0;
     *(l.cost) = 0;
     for (b = 0; b < l.batch; ++b) {
+        // l.softmax_tree = 0
         if(l.softmax_tree){
             int onlyclass = 0;
             for(t = 0; t < 30; ++t){
@@ -243,6 +255,7 @@ void forward_region_layer(const layer l, network net)
             }
             if(onlyclass) continue;
         }
+        // go on this way below
         for (j = 0; j < l.h; ++j) {
             for (i = 0; i < l.w; ++i) {
                 for (n = 0; n < l.n; ++n) {
@@ -276,6 +289,7 @@ void forward_region_layer(const layer l, network net)
                 }
             }
         }
+        // go on this way below
         for(t = 0; t < 30; ++t){
             box truth = float_to_box(net.truth + t*(l.coords + 1) + b*l.truths, 1);
 
@@ -337,6 +351,9 @@ void forward_region_layer(const layer l, network net)
     }
     //printf("\n");
     *(l.cost) = pow(mag_array(l.delta, l.outputs * l.batch), 2);
+    fprintf(stderr, "Region Avg IOU: %f, Class: %f, Obj: %f, No Obj: %f, Avg Recall: %f,  count: %d\n", avg_iou/count, avg_cat/class_count, avg_obj/count, avg_anyobj/(l.w*l.h*l.n*l.batch), recall/count, count);
+    fprintf(stderr, "=== exit forward_region_layer ===\n");
+
     printf("Region Avg IOU: %f, Class: %f, Obj: %f, No Obj: %f, Avg Recall: %f,  count: %d\n", avg_iou/count, avg_cat/class_count, avg_obj/count, avg_anyobj/(l.w*l.h*l.n*l.batch), recall/count, count);
 }
 
