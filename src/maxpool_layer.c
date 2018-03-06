@@ -83,7 +83,8 @@ void forward_maxpool_layer(const maxpool_layer l, network net)
     fprintf(stderr, "l.h:%d\n", l.h);
     fprintf(stderr, "l.w:%d\n", l.w);
     fprintf(stderr, "l.c:%d\n", l.c);
-    fprintf(stderr, ".out_h:%d\n", l.out_h);
+    fprintf(stderr, "l.pad:%d\n", l.pad);
+    fprintf(stderr, "l.out_h:%d\n", l.out_h);
     fprintf(stderr, "l.out_w:%d\n", l.out_w);
     fprintf(stderr, "l.out_c:%d\n", l.out_c);
     int b,i,j,k,m,n;
