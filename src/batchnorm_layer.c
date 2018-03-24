@@ -136,6 +136,10 @@ void forward_batchnorm_layer(layer l, network net)
 {
     fprintf(stderr, "===== forward_batchnorm_layer =====\n");
     fprintf(stderr, "net.train:%d\n", net.train);
+    fprintf(stderr, "l.mean:%f\n", l.mean);
+    fprintf(stderr, "l.rolling_mean:%f\n", l.rolling_mean);
+    fprintf(stderr, "l.variance:%f\n", l.variance);
+    fprintf(stderr, "l.rolling_variance:%f\n", l.rolling_variance);
 
     if(l.type == BATCHNORM){
         fprintf(stderr, "l.type == BATCHNORM\n");
