@@ -473,7 +473,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
     fprintf(stderr, "weights\n");
     for (int i = 0; i < 10; i++)
     {
-        fprintf(stderr, "%d\t%f\n", i, l.weights[i]);
+        fprintf(stderr, "%d\t%f\t%lf\n", i, l.weights[i], l.weights[i]);
     }
     // output
     fprintf(stderr, "gemm\n");
