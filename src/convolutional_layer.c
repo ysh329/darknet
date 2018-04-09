@@ -471,13 +471,13 @@ void forward_convolutional_layer(convolutional_layer l, network net)
 
     // weights
     fprintf(stderr, "weights\n");
-    for (int i = 0; i < 10; i++)
+    for (i = 0; i < 10; i++)
     {
         fprintf(stderr, "%d\t%f\t%lf\n", i, l.weights[i], l.weights[i]);
     }
     // output
     fprintf(stderr, "gemm\n");
-    for (int i = 0; i < 10; i++)
+    for (i = 0; i < 10; i++)
     {
         fprintf(stderr, "%d\t%f\n", i, l.output[i]);
     }
@@ -488,7 +488,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
         add_bias(l.output, l.biases, l.batch, l.n, l.out_h*l.out_w);
     }
     fprintf(stderr, "batchnorm\n");
-    for (int i = 0; i < 10; i++)
+    for (i = 0; i < 10; i++)
     {
         fprintf(stderr, "%d\t%f\n", i, l.output[i]);
     }
@@ -496,7 +496,7 @@ void forward_convolutional_layer(convolutional_layer l, network net)
     activate_array(l.output, l.outputs*l.batch, l.activation);
     if(l.binary || l.xnor) swap_binary(&l);
     fprintf(stderr, "relu\n");
-    for (int i = 0; i < 10; i++)
+    for (i = 0; i < 10; i++)
     {
         fprintf(stderr, "%d\t%f\n", i, l.output[i]);
     }
